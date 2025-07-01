@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة تحضير الدروس المطورة - العربية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@400;500;600;700&family=Tajawal:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --border-radius: 15px;
+            --shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            text-align: right;
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '📚';
+            font-size: 60px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .custom-title-section {
+            background: #f0f8ff;
+            padding: 20px;
+            border-bottom: 3px solid #e0e0e0;
+            text-align: center;
+        }
+        
+        .custom-title-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .custom-title-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 18px;
+            font-family: 'Cairo', sans-serif;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        
+        .custom-title-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.2);
+        }
+        
+        .export-controls {
+            background: var(--light-color);
+            padding: 25px;
+            border-bottom: 3px solid #e0e0e0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, var(--success-color), #00bcd4);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .quality-selector {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .form-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            font-size: 16px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.1);
+        }
+        
+        .lesson-items {
+            margin-top: 30px;
+        }
+        
+        .lesson-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: move;
+        }
+        
+        .lesson-item:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .lesson-item.sortable-ghost {
+            opacity: 0.5;
+        }
+        
+        .lesson-item.sortable-chosen {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .drag-handle {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 20px;
+            color: #999;
+            cursor: grab;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-right: 40px;
+        }
+        
+        .item-title-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-grow: 1;
+        }
+        
+        .item-title-input {
+            border: none;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: transparent;
+            padding: 10px;
+            width: 100%;
+            font-family: inherit;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .item-title-input:focus {
+            outline: none;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 8px;
+        }
+        
+        .title-formatting {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .title-formatting select, 
+        .title-formatting input {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .title-formatting button {
+            background: #e9ecef;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .title-formatting button:hover {
+            background: #dee2e6;
+        }
+        
+        .title-formatting button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .title-formatting label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .formatting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .delete-btn {
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #d63384;
+            transform: scale(1.05);
+        }
+        
+        .content-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: rgba(67, 97, 238, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .formatting-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .formatting-controls label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .formatting-controls select,
+        .formatting-controls input {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .format-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .format-btn:hover {
+            background: #5a6268;
+        }
+        
+        .format-btn.active {
+            background: var(--primary-color);
+        }
+        
+        .content-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        .content-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.1);
+        }
+        
+        .image-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+        
+        .image-upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .image-upload-area.dragover {
+            border-color: var(--success-color);
+            background: rgba(76, 201, 240, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .image-container {
+            margin-top: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .image-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            min-width: 150px;
+        }
+        
+        .image-controls label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .image-scale-slider {
+            width: 100%;
+            max-width: 120px;
+        }
+        
+        .scale-value {
+            font-weight: bold;
+            color: var(--primary-color);
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .remove-image-btn {
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .image-preview {
+            max-width: calc(100% - 165px);
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .add-item-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 30px auto;
+        }
+
+        .add-item-dropdown {
+            padding: 15px 20px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: white;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .add-item-dropdown:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .add-item-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .add-item-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .footer {
+            background: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Print styles for PDF export */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+            
+            .container {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            
+            .header,
+            .export-controls,
+            .custom-title-section,
+            .add-item-container,
+            .footer {
+                display: none !important;
+            }
+            
+            .lesson-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            
+            .image-preview {
+                max-height: 400px;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .formatting-controls,
+            .content-tabs,
+            .drag-handle,
+            .delete-btn,
+            .title-formatting,
+            .image-controls {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>أداة تحضير الدروس المطورة</h1>
+            <p>أداة شاملة ومتطورة لتحضير الدروس مع إمكانيات تصدير عالية الجودة وتحكم متقدم في التنسيق والصور</p>
+        </div>
+
+        <div class="custom-title-section">
+            <h3>عنوان مخصص لتحضير الدرس</h3>
+            <input type="text" id="customTitle" class="custom-title-input" placeholder="أدخل عنوان مخصص لتحضير الدرس (اختياري)">
+        </div>
+
+        <div class="export-controls">
+            <button class="export-btn" onclick="exportToPDF()">📄 تصدير PDF</button>
+            <button class="export-btn" onclick="exportToImage()">🖼️ تصدير صورة</button>
+            <select id="exportQuality" class="quality-selector">
+                <option value="300">جودة عالية (300 DPI)</option>
+                <option value="150">جودة متوسطة (150 DPI)</option>
+                <option value="72">جودة عادية (72 DPI)</option>
+            </select>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h3>معلومات أساسية</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subject">المادة</label>
+                        <input type="text" id="subject" placeholder="مثال: الرياضيات">
+                    </div>
+                    <div class="form-group">
+                        <label for="class">الفصل</label>
+                        <input type="text" id="class" placeholder="مثال: الصف الخامس أ">
+                    </div>
+                    <div class="form-group">
+                        <label for="period">الحصة</label>
+                        <input type="text" id="period" placeholder="مثال: الحصة الثالثة">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">التاريخ</label>
+                        <input type="date" id="date">
+                    </div>
+                    <div class="form-group">
+                        <label for="teacher">اسم المعلم</label>
+                        <input type="text" id="teacher" placeholder="مثال: أ. محمد أحمد">
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonTitle">عنوان الدرس</label>
+                        <input type="text" id="lessonTitle" placeholder="مثال: الكسور العادية">
+                    </div>
+                </div>
+            </div>
+
+            <div class="lesson-items" id="lessonItems">
+                <!-- Lesson items will be added here -->
+            </div>
+
+            <div class="add-item-container">
+                <select id="itemTypeDropdown" class="add-item-dropdown">
+                    <option value="أهداف الدرس">أهداف الدرس</option>
+                    <option value="المقدمة">المقدمة</option>
+                    <option value="الأنشطة والاستراتيجيات">الأنشطة والاستراتيجيات</option>
+                    <option value="التقييم">التقييم</option>
+                    <option value="الخاتمة">الخاتمة</option>
+                    <option value="ملاحظات">ملاحظات</option>
+                    <option value="عنوان مخصص">عنوان مخصص</option>
+                </select>
+                <button class="add-item-btn" onclick="addLessonItem()">➕ إضافة عنصر جديد</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>أداة تحضير الدروس المطورة © 2025 - جميع الحقوق محفوظة</p>
+            <p><a href="https://www.mathegypt.com/p/electronic-lesson-planner-tool.html">العودة للصفحة الرئيسية للأداة</a></p>
+        </div>
+    </div>
+
+    <script>
+        const defaultItemTitles = {
+            'أهداف الدرس': 'أهداف الدرس',
+            'المقدمة': 'المقدمة',
+            'الأنشطة والاستراتيجيات': 'الأنشطة والاستراتيجيات',
+            'التقييم': 'التقييم',
+            'الخاتمة': 'الخاتمة',
+            'ملاحظات': 'ملاحظات',
+            'عنوان مخصص': 'عنوان مخصص'
+        };
+
+        const arabicFonts = ['Cairo', 'Tajawal', 'Amiri', 'Noto Sans Arabic', 'Arial'];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedData();
+            if (document.querySelectorAll('.lesson-item').length === 0) {
+                addLessonItem('أهداف الدرس'); // Add a default item on first load
+            }
+            initSortable();
+        });
+
+        function generateUniqueId() {
+            return 'item-' + Date.now();
+        }
+
+        function addLessonItem(defaultTitle = null) {
+            const lessonItemsDiv = document.getElementById('lessonItems');
+            const itemId = generateUniqueId();
+            const selectedItemType = defaultTitle || document.getElementById('itemTypeDropdown').value;
+            const itemTitle = defaultItemTitles[selectedItemType] || selectedItemType;
+
+            const newItemHtml = `
+                <div class="lesson-item" id="${itemId}">
+                    <span class="drag-handle">&#x22EE;</span>
+                    <div class="item-header">
+                        <div class="item-title-container">
+                            <input type="text" class="item-title-input" value="${itemTitle}">
+                            <div class="title-formatting">
+                                <div class="formatting-group">
+                                    <label>نوع الخط</label>
+                                    <select onchange="applyTitleStyle(this.value, '${itemId}', 'fontFamily')">
+                                        ${arabicFonts.map(font => `<option value="${font}">${font}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="formatting-group">
+                                    <label>حجم الخط</label>
+                                    <input type="number" value="20" min="10" max="72" onchange="applyTitleStyle(this.value + 'px', '${itemId}', 'fontSize')">
+                                </div>
+                                <div class="formatting-group">
+                                    <label>لون الخط</label>
+                                    <input type="color" value="#4361ee" onchange="applyTitleStyle(this.value, '${itemId}', 'color')" title="لون العنوان">
+                                </div>
+                                <div class="formatting-group">
+                                    <label>لون الخلفية</label>
+                                    <input type="color" value="#ffffff" onchange="applyTitleStyle(this.value, '${itemId}', 'backgroundColor')" title="لون خلفية العنوان">
+                                </div>
+                                <div class="formatting-group">
+                                    <label>المحاذاة</label>
+                                    <select onchange="applyTitleStyle(this.value, '${itemId}', 'textAlign')">
+                                        <option value="right">يمين</option>
+                                        <option value="center">وسط</option>
+                                        <option value="left">يسار</option>
+                                    </select>
+                                </div>
+                                <div class="formatting-group">
+                                    <label>الاتجاه</label>
+                                    <select onchange="applyTitleStyle(this.value, '${itemId}', 'direction')">
+                                        <option value="rtl">من اليمين لليسار</option>
+                                        <option value="ltr">من اليسار لليمين</option>
+                                    </select>
+                                </div>
+                                <div class="formatting-group">
+                                    <label>تنسيق</label>
+                                    <button onclick="toggleTitleStyle(this, '${itemId}', 'fontWeight', 'bold')">عريض</button>
+                                </div>
+                                <div class="formatting-group">
+                                    <label>&nbsp;</label>
+                                    <button onclick="toggleTitleStyle(this, '${itemId}', 'fontStyle', 'italic')">مائل</button>
+                                </div>
+                                <div class="formatting-group">
+                                    <label>&nbsp;</label>
+                                    <button onclick="toggleTitleStyle(this, '${itemId}', 'textDecoration', 'underline')">تحتها خط</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteLessonItem('${itemId}')">🗑️ حذف</button>
+                    </div>
+                    <div class="content-tabs">
+                        <button class="tab-btn active" onclick="switchTab(this, '${itemId}', 'text')">📝 نص</button>
+                        <button class="tab-btn" onclick="switchTab(this, '${itemId}', 'image')">🖼️ صورة</button>
+                    </div>
+                    <div class="tab-content active" id="${itemId}-text-content">
+                        <div class="formatting-controls">
+                            <label>الخط:</label>
+                            <select onchange="applyTextStyle(this.value, '${itemId}', 'fontFamily')">
+                                ${arabicFonts.map(font => `<option value="${font}">${font}</option>`).join('')}
+                            </select>
+                            <label>الحجم:</label>
+                            <input type="number" value="16" min="8" max="48" onchange="applyTextStyle(this.value + 'px', '${itemId}', 'fontSize')">
+                            <label>اللون:</label>
+                            <input type="color" value="#000000" onchange="applyTextStyle(this.value, '${itemId}', 'color')" title="لون النص">
+                            <button class="format-btn" onclick="toggleTextStyle(this, '${itemId}', 'fontWeight', 'bold')">عريض</button>
+                            <button class="format-btn" onclick="toggleTextStyle(this, '${itemId}', 'fontStyle', 'italic')">مائل</button>
+                            <button class="format-btn" onclick="toggleTextStyle(this, '${itemId}', 'textDecoration', 'underline')">تسطير</button>
+                            <label>المحاذاة:</label>
+                            <select onchange="applyTextStyle(this.value, '${itemId}', 'textAlign')">
+                                <option value="right">يمين</option>
+                                <option value="center">وسط</option>
+                                <option value="left">يسار</option>
+                                <option value="justify">ضبط</option>
+                            </select>
+                            <label>الاتجاه:</label>
+                            <select onchange="applyTextStyle(this.value, '${itemId}', 'direction')">
+                                <option value="rtl">من اليمين لليسار</option>
+                                <option value="ltr">من اليسار لليمين</option>
+                            </select>
+                        </div>
+                        <textarea class="content-textarea" oninput="saveData()" placeholder="أدخل محتوى العنصر هنا..."></textarea>
+                    </div>
+                    <div class="tab-content" id="${itemId}-image-content">
+                        <div class="image-upload-area" 
+                             ondragover="handleDragOver(event)" 
+                             ondragleave="handleDragLeave(event)" 
+                             ondrop="handleDrop(event, '${itemId}')" 
+                             onclick="document.getElementById('imageInput-${itemId}').click()">
+                            <div class="upload-icon">📁</div>
+                            <p class="upload-text">انقر لاختيار الصور أو اسحبها هنا</p>
+                            <p class="upload-hint">يدعم: JPG, PNG, GIF</p>
+                            <input type="file" id="imageInput-${itemId}" accept="image/*" multiple onchange="handleImageUpload(event, '${itemId}')" style="display: none;">
+                        </div>
+                        <div class="image-preview-container" id="imagePreview-${itemId}">
+                            <!-- Image previews will be added here -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            lessonItemsDiv.insertAdjacentHTML('beforeend', newItemHtml);
+            saveData();
+            // Apply default font to new item's title and text area
+            const newItem = document.getElementById(itemId);
+            const titleFontSelect = newItem.querySelector('.item-title-container .title-formatting select');
+            if (titleFontSelect) {
+                titleFontSelect.value = arabicFonts[0];
+                applyTitleStyle(arabicFonts[0], itemId, 'fontFamily');
+            }
+            const textFontSelect = newItem.querySelector('.tab-content select');
+            if (textFontSelect) {
+                textFontSelect.value = arabicFonts[0];
+                applyTextStyle(arabicFonts[0], itemId, 'fontFamily');
+            }
+        }
+
+        function deleteLessonItem(itemId) {
+            if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
+                document.getElementById(itemId).remove();
+                saveData();
+            }
+        }
+
+        function switchTab(button, itemId, tabType) {
+            const item = document.getElementById(itemId);
+            item.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            item.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(`${itemId}-${tabType}-content`).classList.add('active');
+            saveData();
+        }
+
+        function applyTitleStyle(value, itemId, property) {
+            const item = document.getElementById(itemId);
+            const titleInput = item.querySelector('.item-title-input');
+            titleInput.style[property] = value;
+            saveData();
+        }
+
+        function toggleTitleStyle(button, itemId, property, value) {
+            const item = document.getElementById(itemId);
+            const titleInput = item.querySelector('.item-title-input');
+            
+            if (property === 'textDecoration') {
+                if (titleInput.style.textDecoration.includes(value)) {
+                    titleInput.style.textDecoration = titleInput.style.textDecoration.replace(value, '').trim();
+                    button.classList.remove('active');
+                } else {
+                    titleInput.style.textDecoration += ` ${value}`;
+                    button.classList.add('active');
+                }
+            } else {
+                if (titleInput.style[property] === value) {
+                    titleInput.style[property] = '';
+                    button.classList.remove('active');
+                } else {
+                    titleInput.style[property] = value;
+                    button.classList.add('active');
+                }
+            }
+            saveData();
+        }
+
+        function applyTextStyle(value, itemId, property) {
+            const item = document.getElementById(itemId);
+            const textarea = item.querySelector('.content-textarea');
+            textarea.style[property] = value;
+            saveData();
+        }
+
+        function toggleTextStyle(button, itemId, property, value) {
+            const item = document.getElementById(itemId);
+            const textarea = item.querySelector('.content-textarea');
+            if (property === 'textDecoration') {
+                if (textarea.style.textDecoration.includes(value)) {
+                    textarea.style.textDecoration = textarea.style.textDecoration.replace(value, '').trim();
+                    button.classList.remove('active');
+                } else {
+                    textarea.style.textDecoration += ` ${value}`;
+                    button.classList.add('active');
+                }
+            } else {
+                if (textarea.style[property] === value) {
+                    textarea.style[property] = '';
+                    button.classList.remove('active');
+                } else {
+                    textarea.style[property] = value;
+                    button.classList.add('active');
+                }
+            }
+            saveData();
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(event, itemId) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+            const files = event.dataTransfer.files;
+            processImageFiles(files, itemId);
+        }
+
+        function handleImageUpload(event, itemId) {
+            const files = event.target.files;
+            processImageFiles(files, itemId);
+        }
+
+        function processImageFiles(files, itemId) {
+            const imagePreviewContainer = document.getElementById(`imagePreview-${itemId}`);
+            if (!imagePreviewContainer) return;
+
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const uniqueImgId = Date.now() + Math.random().toString(36).substring(2, 9);
+                        const imageContainer = document.createElement('div');
+                        imageContainer.className = 'image-container';
+                        imageContainer.innerHTML = `
+                            <div class="image-preview-wrapper">
+                                <img src="${e.target.result}" class="image-preview" id="img-${uniqueImgId}" alt="Image Preview">
+                            </div>
+                            <div class="image-controls">
+                                <label>حجم الصورة:</label>
+                                <input type="range" class="image-scale-slider" min="0" max="200" value="100" 
+                                       oninput="scaleImage(this, 'img-${uniqueImgId}')">
+                                <span class="scale-value">100%</span>
+                                <label>محاذاة الصورة:</label>
+                                <select onchange="setImageAlignment(this, 'img-${uniqueImgId}')">
+                                    <option value="center">وسط</option>
+                                    <option value="right">يمين</option>
+                                    <option value="left">يسار</option>
+                                </select>
+                                <button class="remove-image-btn" onclick="removeImage(this)">حذف</button>
+                            </div>
+                        `;
+                        imagePreviewContainer.appendChild(imageContainer);
+                        saveData();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function scaleImage(slider, imgId) {
+            const img = document.getElementById(imgId);
+            const scaleValueSpan = slider.nextElementSibling;
+            const scale = slider.value;
+            img.style.transform = `scale(${scale / 100})`;
+            img.style.transformOrigin = 'center';
+            scaleValueSpan.textContent = `${scale}%`;
+            saveData();
+        }
+
+        function setImageAlignment(select, imgId) {
+            const img = document.getElementById(imgId);
+            const container = img.closest('.image-container');
+            const alignment = select.value;
+            
+            // Store alignment data for PDF export
+            img.setAttribute('data-alignment', alignment);
+            
+            // Apply visual alignment
+            if (alignment === 'center') {
+                container.style.justifyContent = 'center';
+                img.style.margin = '0 auto';
+            } else if (alignment === 'right') {
+                container.style.justifyContent = 'flex-end';
+                img.style.margin = '0 0 0 auto';
+            } else if (alignment === 'left') {
+                container.style.justifyContent = 'flex-start';
+                img.style.margin = '0 auto 0 0';
+            }
+            saveData();
+        }
+
+        function removeImage(button) {
+            if (confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
+                button.closest('.image-container').remove();
+                saveData();
+            }
+        }
+
+        function initSortable() {
+            const el = document.getElementById('lessonItems');
+            Sortable.create(el, {
+                animation: 150,
+                handle: '.drag-handle', // Drag handle
+                onEnd: function (evt) {
+                    saveData();
+                },
+            });
+        }
+
+        function saveData() {
+            const data = {
+                customTitle: document.getElementById('customTitle').value,
+                basicInfo: {
+                    subject: document.getElementById('subject').value,
+                    class: document.getElementById('class').value,
+                    period: document.getElementById('period').value,
+                    date: document.getElementById('date').value,
+                    teacher: document.getElementById('teacher').value,
+                    lessonTitle: document.getElementById('lessonTitle').value,
+                },
+                items: []
+            };
+            
+            document.querySelectorAll('.lesson-item').forEach(item => {
+                const itemData = {
+                    id: item.id,
+                    title: item.querySelector('.item-title-input').value,
+                    textContent: item.querySelector('.content-textarea').value,
+                    images: []
+                };
+                
+                // Save title styling
+                const titleInput = item.querySelector('.item-title-input');
+                itemData.titleStyle = {
+                    fontFamily: titleInput.style.fontFamily || 'Cairo',
+                    fontSize: titleInput.style.fontSize || '20px',
+                    fontWeight: titleInput.style.fontWeight || 'normal',
+                    fontStyle: titleInput.style.fontStyle || 'normal',
+                    textDecoration: titleInput.style.textDecoration || 'none',
+                    textAlign: titleInput.style.textAlign || 'right',
+                    direction: titleInput.style.direction || 'rtl',
+                    color: titleInput.style.color || '#4361ee',
+                    backgroundColor: titleInput.style.backgroundColor || '#ffffff'
+                };
+                
+                // Save text styling
+                const textarea = item.querySelector('.content-textarea');
+                itemData.textStyle = {
+                    fontFamily: textarea.style.fontFamily || 'Cairo',
+                    fontSize: textarea.style.fontSize || '16px',
+                    fontWeight: textarea.style.fontWeight || 'normal',
+                    fontStyle: textarea.style.fontStyle || 'normal',
+                    textDecoration: textarea.style.textDecoration || 'none',
+                    textAlign: textarea.style.textAlign || 'right',
+                    direction: textarea.style.direction || 'rtl',
+                    color: textarea.style.color || '#000000'
+                };
+                
+                // Save images with their scales and alignment
+                const imageContainers = item.querySelectorAll('.image-container');
+                imageContainers.forEach(container => {
+                    const img = container.querySelector('.image-preview');
+                    const slider = container.querySelector('.image-scale-slider');
+                    const alignmentSelect = container.querySelector('select');
+                    if (img && slider) {
+                        itemData.images.push({
+                            src: img.src,
+                            scale: slider.value,
+                            alignment: alignmentSelect ? alignmentSelect.value : 'center'
+                        });
+                    }
+                });
+                
+                data.items.push(itemData);
+            });
+            
+            localStorage.setItem('lessonPlanData_ar_final', JSON.stringify(data));
+        }
+
+        function loadSavedData() {
+            const savedData = localStorage.getItem('lessonPlanData_ar_final');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    
+                    // Load basic info
+                    if (data.customTitle) document.getElementById('customTitle').value = data.customTitle;
+                    if (data.basicInfo) {
+                        Object.keys(data.basicInfo).forEach(key => {
+                            const element = document.getElementById(key);
+                            if (element && data.basicInfo[key]) {
+                                element.value = data.basicInfo[key];
+                            }
+                        });
+                    }
+                    
+                    // Load items
+                    if (data.items && data.items.length > 0) {
+                        // Clear existing items before loading new ones to prevent duplicates
+                        document.getElementById('lessonItems').innerHTML = '';
+
+                        data.items.forEach((itemData) => {
+                            const lessonItemsDiv = document.getElementById('lessonItems');
+                            const newItemHtml = `
+                                <div class="lesson-item" id="${itemData.id}">
+                                    <span class="drag-handle">&#x22EE;</span>
+                                    <div class="item-header">
+                                        <div class="item-title-container">
+                                            <input type="text" class="item-title-input" value="${itemData.title || ''}">
+                                            <div class="title-formatting">
+                                                <div class="formatting-group">
+                                                    <label>نوع الخط</label>
+                                                    <select onchange="applyTitleStyle(this.value, '${itemData.id}', 'fontFamily')">
+                                                        ${arabicFonts.map(font => `<option value="${font}" ${itemData.titleStyle?.fontFamily === font ? 'selected' : ''}>${font}</option>`).join('')}
+                                                    </select>
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>حجم الخط</label>
+                                                    <input type="number" value="${parseInt(itemData.titleStyle?.fontSize || '20')}" min="10" max="72" onchange="applyTitleStyle(this.value + 'px', '${itemData.id}', 'fontSize')">
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>لون الخط</label>
+                                                    <input type="color" value="${itemData.titleStyle?.color || '#4361ee'}" onchange="applyTitleStyle(this.value, '${itemData.id}', 'color')" title="لون العنوان">
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>لون الخلفية</label>
+                                                    <input type="color" value="${itemData.titleStyle?.backgroundColor || '#ffffff'}" onchange="applyTitleStyle(this.value, '${itemData.id}', 'backgroundColor')" title="لون خلفية العنوان">
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>المحاذاة</label>
+                                                    <select onchange="applyTitleStyle(this.value, '${itemData.id}', 'textAlign')">
+                                                        <option value="right" ${itemData.titleStyle?.textAlign === 'right' ? 'selected' : ''}>يمين</option>
+                                                        <option value="center" ${itemData.titleStyle?.textAlign === 'center' ? 'selected' : ''}>وسط</option>
+                                                        <option value="left" ${itemData.titleStyle?.textAlign === 'left' ? 'selected' : ''}>يسار</option>
+                                                    </select>
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>الاتجاه</label>
+                                                    <select onchange="applyTitleStyle(this.value, '${itemData.id}', 'direction')">
+                                                        <option value="rtl" ${itemData.titleStyle?.direction === 'rtl' ? 'selected' : ''}>من اليمين لليسار</option>
+                                                        <option value="ltr" ${itemData.titleStyle?.direction === 'ltr' ? 'selected' : ''}>من اليسار لليمين</option>
+                                                    </select>
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>تنسيق</label>
+                                                    <button onclick="toggleTitleStyle(this, '${itemData.id}', 'fontWeight', 'bold')" class="${itemData.titleStyle?.fontWeight === 'bold' ? 'active' : ''}">عريض</button>
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>&nbsp;</label>
+                                                    <button onclick="toggleTitleStyle(this, '${itemData.id}', 'fontStyle', 'italic')" class="${itemData.titleStyle?.fontStyle === 'italic' ? 'active' : ''}">مائل</button>
+                                                </div>
+                                                <div class="formatting-group">
+                                                    <label>&nbsp;</label>
+                                                    <button onclick="toggleTitleStyle(this, '${itemData.id}', 'textDecoration', 'underline')" class="${itemData.titleStyle?.textDecoration?.includes('underline') ? 'active' : ''}">تحتها خط</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="delete-btn" onclick="deleteLessonItem('${itemData.id}')">🗑️ حذف</button>
+                                    </div>
+                                    <div class="content-tabs">
+                                        <button class="tab-btn active" onclick="switchTab(this, '${itemData.id}', 'text')">📝 نص</button>
+                                        <button class="tab-btn" onclick="switchTab(this, '${itemData.id}', 'image')">🖼️ صورة</button>
+                                    </div>
+                                    <div class="tab-content active" id="${itemData.id}-text-content">
+                                        <div class="formatting-controls">
+                                            <label>الخط:</label>
+                                            <select onchange="applyTextStyle(this.value, '${itemData.id}', 'fontFamily')">
+                                                ${arabicFonts.map(font => `<option value="${font}" ${itemData.textStyle?.fontFamily === font ? 'selected' : ''}>${font}</option>`).join('')}
+                                            </select>
+                                            <label>الحجم:</label>
+                                            <input type="number" value="${parseInt(itemData.textStyle?.fontSize || '16')}" min="8" max="48" onchange="applyTextStyle(this.value + 'px', '${itemData.id}', 'fontSize')">
+                                            <label>اللون:</label>
+                                            <input type="color" value="${itemData.textStyle?.color || '#000000'}" onchange="applyTextStyle(this.value, '${itemData.id}', 'color')" title="لون النص">
+                                            <button class="format-btn ${itemData.textStyle?.fontWeight === 'bold' ? 'active' : ''}" onclick="toggleTextStyle(this, '${itemData.id}', 'fontWeight', 'bold')">عريض</button>
+                                            <button class="format-btn ${itemData.textStyle?.fontStyle === 'italic' ? 'active' : ''}" onclick="toggleTextStyle(this, '${itemData.id}', 'fontStyle', 'italic')">مائل</button>
+                                            <button class="format-btn ${itemData.textStyle?.textDecoration?.includes('underline') ? 'active' : ''}" onclick="toggleTextStyle(this, '${itemData.id}', 'textDecoration', 'underline')">تسطير</button>
+                                            <label>المحاذاة:</label>
+                                            <select onchange="applyTextStyle(this.value, '${itemData.id}', 'textAlign')">
+                                                <option value="right" ${itemData.textStyle?.textAlign === 'right' ? 'selected' : ''}>يمين</option>
+                                                <option value="center" ${itemData.textStyle?.textAlign === 'center' ? 'selected' : ''}>وسط</option>
+                                                <option value="left" ${itemData.textStyle?.textAlign === 'left' ? 'selected' : ''}>يسار</option>
+                                                <option value="justify" ${itemData.textStyle?.textAlign === 'justify' ? 'selected' : ''}>ضبط</option>
+                                            </select>
+                                            <label>الاتجاه:</label>
+                                            <select onchange="applyTextStyle(this.value, '${itemData.id}', 'direction')">
+                                                <option value="rtl" ${itemData.textStyle?.direction === 'rtl' ? 'selected' : ''}>من اليمين لليسار</option>
+                                                <option value="ltr" ${itemData.textStyle?.direction === 'ltr' ? 'selected' : ''}>من اليسار لليمين</option>
+                                            </select>
+                                        </div>
+                                        <textarea class="content-textarea" oninput="saveData()" placeholder="أدخل محتوى العنصر هنا..." style="font-family: ${itemData.textStyle?.fontFamily || 'Cairo'}; font-size: ${itemData.textStyle?.fontSize || '16px'}; font-weight: ${itemData.textStyle?.fontWeight || 'normal'}; font-style: ${itemData.textStyle?.fontStyle || 'normal'}; text-decoration: ${itemData.textStyle?.textDecoration || 'none'}; text-align: ${itemData.textStyle?.textAlign || 'right'}; direction: ${itemData.textStyle?.direction || 'rtl'}; color: ${itemData.textStyle?.color || '#000000'};">${itemData.textContent || ''}</textarea>
+                                    </div>
+                                    <div class="tab-content" id="${itemData.id}-image-content">
+                                        <div class="image-upload-area" 
+                                             ondragover="handleDragOver(event)" 
+                                             ondragleave="handleDragLeave(event)" 
+                                             ondrop="handleDrop(event, '${itemData.id}')" 
+                                             onclick="document.getElementById('imageInput-${itemData.id}').click()">
+                                            <div class="upload-icon">📁</div>
+                                            <p class="upload-text">انقر لاختيار الصور أو اسحبها هنا</p>
+                                            <p class="upload-hint">يدعم: JPG, PNG, GIF</p>
+                                            <input type="file" id="imageInput-${itemData.id}" accept="image/*" multiple onchange="handleImageUpload(event, '${itemData.id}')" style="display: none;">
+                                        </div>
+                                        <div class="image-preview-container" id="imagePreview-${itemData.id}">
+                                            <!-- Image previews will be added here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            lessonItemsDiv.insertAdjacentHTML('beforeend', newItemHtml);
+
+                            // Load images for this item
+                            const currentItemDiv = document.getElementById(itemData.id);
+                            const imagePreviewContainer = currentItemDiv.querySelector('.image-preview-container');
+                            if (itemData.images && imagePreviewContainer) {
+                                imagePreviewContainer.innerHTML = ''; // Clear existing placeholders
+                                itemData.images.forEach(imageData => {
+                                    const uniqueImgId = Date.now() + Math.random().toString(36).substring(2, 9);
+                                    const imageContainer = document.createElement('div');
+                                    imageContainer.className = 'image-container';
+                                    imageContainer.innerHTML = `
+                                        <div class="image-preview-wrapper">
+                                            <img src="${imageData.src}" class="image-preview" id="img-${uniqueImgId}" alt="Image Preview" style="transform: scale(${(imageData.scale || 100) / 100}); transform-origin: center;" data-alignment="${imageData.alignment || 'center'}">
+                                        </div>
+                                        <div class="image-controls">
+                                            <label>حجم الصورة:</label>
+                                            <input type="range" class="image-scale-slider" min="0" max="200" value="${imageData.scale || 100}" 
+                                                   oninput="scaleImage(this, 'img-${uniqueImgId}')">
+                                            <span class="scale-value">${imageData.scale || 100}%</span>
+                                            <label>محاذاة الصورة:</label>
+                                            <select onchange="setImageAlignment(this, 'img-${uniqueImgId}')">
+                                                <option value="center" ${imageData.alignment === 'center' ? 'selected' : ''}>وسط</option>
+                                                <option value="right" ${imageData.alignment === 'right' ? 'selected' : ''}>يمين</option>
+                                                <option value="left" ${imageData.alignment === 'left' ? 'selected' : ''}>يسار</option>
+                                            </select>
+                                            <button class="remove-image-btn" onclick="removeImage(this)">حذف</button>
+                                        </div>
+                                    `;
+                                    imagePreviewContainer.appendChild(imageContainer);
+                                    
+                                    // Apply alignment
+                                    const img = imageContainer.querySelector('.image-preview');
+                                    const alignment = imageData.alignment || 'center';
+                                    if (alignment === 'center') {
+                                        imageContainer.style.justifyContent = 'center';
+                                        img.style.margin = '0 auto';
+                                    } else if (alignment === 'right') {
+                                        imageContainer.style.justifyContent = 'flex-end';
+                                        img.style.margin = '0 0 0 auto';
+                                    } else if (alignment === 'left') {
+                                        imageContainer.style.justifyContent = 'flex-start';
+                                        img.style.margin = '0 auto 0 0';
+                                    }
+                                });
+                            }
+
+                            // Set title styling
+                            const titleInput = currentItemDiv.querySelector('.item-title-input');
+                            if (itemData.titleStyle) {
+                                titleInput.style.fontFamily = itemData.titleStyle.fontFamily;
+                                titleInput.style.fontSize = itemData.titleStyle.fontSize;
+                                titleInput.style.fontWeight = itemData.titleStyle.fontWeight;
+                                titleInput.style.fontStyle = itemData.titleStyle.fontStyle;
+                                titleInput.style.textDecoration = itemData.titleStyle.textDecoration;
+                                titleInput.style.textAlign = itemData.titleStyle.textAlign;
+                                titleInput.style.direction = itemData.titleStyle.direction;
+                                titleInput.style.color = itemData.titleStyle.color;
+                                titleInput.style.backgroundColor = itemData.titleStyle.backgroundColor;
+                            }
+
+                            // Set text area styling
+                            const textarea = currentItemDiv.querySelector('.content-textarea');
+                            if (itemData.textStyle) {
+                                textarea.style.fontFamily = itemData.textStyle.fontFamily;
+                                textarea.style.fontSize = itemData.textStyle.fontSize;
+                                textarea.style.fontWeight = itemData.textStyle.fontWeight;
+                                textarea.style.fontStyle = itemData.textStyle.fontStyle;
+                                textarea.style.textDecoration = itemData.textStyle.textDecoration;
+                                textarea.style.textAlign = itemData.textStyle.textAlign;
+                                textarea.style.direction = itemData.textStyle.direction;
+                                textarea.style.color = itemData.textStyle.color;
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading saved data:', error);
+                }
+            }
+        }
+
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const quality = parseInt(document.getElementById('exportQuality').value);
+            
+            try {
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                // Get all items
+                const allItems = Array.from(document.querySelectorAll('.lesson-item'));
+                
+                // Group items by pages (max 3 images per page)
+                const pages = [];
+                let currentPage = [];
+                let currentImageCount = 0;
+                
+                allItems.forEach(item => {
+                    const imageCount = item.querySelectorAll('.image-preview').length;
+                    
+                    if (currentImageCount + imageCount > 3 && currentPage.length > 0) {
+                        pages.push([...currentPage]);
+                        currentPage = [];
+                        currentImageCount = 0;
+                    }
+                    
+                    currentPage.push(item);
+                    currentImageCount += imageCount;
+                });
+                
+                if (currentPage.length > 0) {
+                    pages.push(currentPage);
+                }
+                
+                // Generate each page
+                for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+                    if (pageIndex > 0) {
+                        pdf.addPage();
+                    }
+                    await addPageToPDF(pdf, pages[pageIndex], quality, pdfWidth, pdfHeight, pageIndex === 0);
+                }
+                
+                // Save the PDF
+                const customTitle = document.getElementById('customTitle').value;
+                const fileName = customTitle ? `${customTitle}.pdf` : 'تحضير_درس.pdf';
+                pdf.save(fileName);
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('خطأ في إنشاء ملف PDF');
+            }
+        }
+
+        async function addPageToPDF(pdf, items, quality, pdfWidth, pdfHeight, includeHeader) {
+            // Create a container for this page
+            const pageContainer = document.createElement('div');
+            pageContainer.style.cssText = `
+                position: absolute;
+                top: -10000px;
+                left: -10000px;
+                width: ${pdfWidth * 3.78}px;
+                background: white;
+                font-family: 'Cairo', sans-serif;
+                padding: 60px;
+                box-sizing: border-box;
+                direction: rtl;
+                text-align: right;
+            `;
+            
+            if (includeHeader) {
+                // Add custom title if exists
+                const customTitle = document.getElementById('customTitle').value;
+                if (customTitle) {
+                    const titleDiv = document.createElement('div');
+                    titleDiv.style.cssText = `
+                        text-align: center;
+                        font-size: 28px;
+                        font-weight: bold;
+                        color: #4361ee;
+                        margin-bottom: 30px;
+                        padding: 20px;
+                        border: 3px solid #4361ee;
+                        border-radius: 15px;
+                        background: #f0f8ff;
+                    `;
+                    titleDiv.textContent = customTitle;
+                    pageContainer.appendChild(titleDiv);
+                }
+                
+                // Add header information
+                const headerDiv = document.createElement('div');
+                headerDiv.style.cssText = `
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 30px;
+                    padding: 20px;
+                    background: #f8f9fa;
+                    border-radius: 12px;
+                    border: 2px solid #e9ecef;
+                `;
+                
+                const fields = [
+                    { label: 'المادة', value: document.getElementById('subject').value },
+                    { label: 'الفصل', value: document.getElementById('class').value },
+                    { label: 'الحصة', value: document.getElementById('period').value },
+                    { label: 'التاريخ', value: document.getElementById('date').value },
+                    { label: 'المعلم', value: document.getElementById('teacher').value },
+                    { label: 'عنوان الدرس', value: document.getElementById('lessonTitle').value }
+                ];
+                
+                fields.forEach(field => {
+                    if (field.value) {
+                        const fieldDiv = document.createElement('div');
+                        fieldDiv.style.cssText = `
+                            padding: 12px;
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            background: white;
+                            font-size: 16px;
+                        `;
+                        fieldDiv.innerHTML = `<strong>${field.label}:</strong> ${field.value}`;
+                        headerDiv.appendChild(fieldDiv);
+                    }
+                });
+                
+                pageContainer.appendChild(headerDiv);
+            }
+            
+            // Add items to this page
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = `
+                    margin-bottom: 30px;
+                    padding: 20px;
+                    border: 2px solid #e9ecef;
+                    border-radius: 12px;
+                    background: white;
+                    page-break-inside: avoid;
+                `;
+                
+                const titleInput = item.querySelector('.item-title-input');
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = `
+                    font-family: ${titleInput.style.fontFamily || 'Cairo'};
+                    font-size: ${titleInput.style.fontSize || '24px'};
+                    font-weight: ${titleInput.style.fontWeight || '600'};
+                    font-style: ${titleInput.style.fontStyle || 'normal'};
+                    text-decoration: ${titleInput.style.textDecoration || 'none'};
+                    text-align: ${titleInput.style.textAlign || 'right'};
+                    direction: ${titleInput.style.direction || 'rtl'};
+                    color: ${titleInput.style.color || '#4361ee'};
+                    background-color: ${titleInput.style.backgroundColor || 'transparent'};
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    border-radius: 8px;
+                `;
+                titleDiv.textContent = titleInput.value;
+                itemDiv.appendChild(titleDiv);
+
+                const textarea = item.querySelector('.content-textarea');
+                if (textarea && textarea.value) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.cssText = `
+                        font-family: ${textarea.style.fontFamily || 'Cairo'};
+                        font-size: ${textarea.style.fontSize || '16px'};
+                        font-weight: ${textarea.style.fontWeight || 'normal'};
+                        font-style: ${textarea.style.fontStyle || 'normal'};
+                        text-decoration: ${textarea.style.textDecoration || 'none'};
+                        text-align: ${textarea.style.textAlign || 'right'};
+                        direction: ${textarea.style.direction || 'rtl'};
+                        color: ${textarea.style.color || '#000000'};
+                        line-height: 1.6;
+                        margin-bottom: 15px;
+                    `;
+                    contentDiv.textContent = textarea.value;
+                    itemDiv.appendChild(contentDiv);
+                }
+
+                const images = item.querySelectorAll('.image-preview');
+                images.forEach(img => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img.src;
+                    const alignment = img.getAttribute('data-alignment') || 'center';
+                    
+                    let alignmentStyle = 'margin: 15px auto;';
+                    if (alignment === 'right') {
+                        alignmentStyle = 'margin: 15px 0 15px auto;';
+                    } else if (alignment === 'left') {
+                        alignmentStyle = 'margin: 15px auto 15px 0;';
+                    }
+                    
+                    imgElement.style.cssText = `
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                        ${alignmentStyle}
+                        border-radius: 8px;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                        transform: ${img.style.transform};
+                        transform-origin: center;
+                    `;
+                    itemDiv.appendChild(imgElement);
+                });
+
+                pageContainer.appendChild(itemDiv);
+            });
+
+            document.body.appendChild(pageContainer);
+            const canvas = await html2canvas(pageContainer, { scale: quality / 72, useCORS: true, allowTaint: true });
+            document.body.removeChild(pageContainer);
+            
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        }
+
+        async function exportToImage() {
+            const quality = parseInt(document.getElementById('exportQuality').value);
+            const customTitle = document.getElementById('customTitle').value;
+            const fileName = customTitle ? `${customTitle}.png` : 'تحضير_درس.png';
+
+            // Create a temporary container for all content to be exported
+            const exportContent = document.createElement('div');
+            exportContent.style.cssText = `
+                position: absolute;
+                top: -10000px;
+                left: -10000px;
+                width: 1200px; /* A reasonable width for image export */
+                background: white;
+                font-family: 'Cairo', sans-serif;
+                padding: 50px;
+                box-sizing: border-box;
+                direction: rtl;
+                text-align: right;
+            `;
+
+            // Add custom title if exists
+            if (customTitle) {
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = `
+                    text-align: center;
+                    font-size: 36px;
+                    font-weight: bold;
+                    color: #4361ee;
+                    margin-bottom: 40px;
+                    padding: 25px;
+                    border: 4px solid #4361ee;
+                    border-radius: 20px;
+                    background: #f0f8ff;
+                `;
+                titleDiv.textContent = customTitle;
+                exportContent.appendChild(titleDiv);
+            }
+
+            // Add header information
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = `
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 25px;
+                margin-bottom: 40px;
+                padding: 25px;
+                background: #f8f9fa;
+                border-radius: 15px;
+                border: 2px solid #e9ecef;
+            `;
+            
+            const fields = [
+                { label: 'المادة', value: document.getElementById('subject').value },
+                { label: 'الفصل', value: document.getElementById('class').value },
+                { label: 'الحصة', value: document.getElementById('period').value },
+                { label: 'التاريخ', value: document.getElementById('date').value },
+                { label: 'المعلم', value: document.getElementById('teacher').value },
+                { label: 'عنوان الدرس', value: document.getElementById('lessonTitle').value }
+            ];
+            
+            fields.forEach(field => {
+                if (field.value) {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.style.cssText = `
+                        padding: 15px;
+                        border: 2px solid #ddd;
+                        border-radius: 10px;
+                        background: white;
+                        font-size: 18px;
+                    `;
+                    fieldDiv.innerHTML = `<strong>${field.label}:</strong> ${field.value}`;
+                    headerDiv.appendChild(fieldDiv);
+                }
+            });
+            
+            exportContent.appendChild(headerDiv);
+
+            // Add all lesson items
+            document.querySelectorAll('.lesson-item').forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = `
+                    margin-bottom: 40px;
+                    padding: 30px;
+                    border: 2px solid #e9ecef;
+                    border-radius: 15px;
+                    background: white;
+                `;
+                
+                const titleInput = item.querySelector('.item-title-input');
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = `
+                    font-family: ${titleInput.style.fontFamily || 'Cairo'};
+                    font-size: ${titleInput.style.fontSize || '28px'};
+                    font-weight: ${titleInput.style.fontWeight || '600'};
+                    font-style: ${titleInput.style.fontStyle || 'normal'};
+                    text-decoration: ${titleInput.style.textDecoration || 'none'};
+                    text-align: ${titleInput.style.textAlign || 'right'};
+                    direction: ${titleInput.style.direction || 'rtl'};
+                    color: ${titleInput.style.color || '#4361ee'};
+                    background-color: ${titleInput.style.backgroundColor || 'transparent'};
+                    margin-bottom: 20px;
+                    padding: 15px;
+                    border-radius: 10px;
+                `;
+                titleDiv.textContent = titleInput.value;
+                itemDiv.appendChild(titleDiv);
+
+                const textarea = item.querySelector('.content-textarea');
+                if (textarea && textarea.value) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.cssText = `
+                        font-family: ${textarea.style.fontFamily || 'Cairo'};
+                        font-size: ${textarea.style.fontSize || '18px'};
+                        font-weight: ${textarea.style.fontWeight || 'normal'};
+                        font-style: ${textarea.style.fontStyle || 'normal'};
+                        text-decoration: ${textarea.style.textDecoration || 'none'};
+                        text-align: ${textarea.style.textAlign || 'right'};
+                        direction: ${textarea.style.direction || 'rtl'};
+                        color: ${textarea.style.color || '#000000'};
+                        line-height: 1.8;
+                        margin-bottom: 20px;
+                    `;
+                    contentDiv.textContent = textarea.value;
+                    itemDiv.appendChild(contentDiv);
+                }
+
+                const images = item.querySelectorAll('.image-preview');
+                images.forEach(img => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img.src;
+                    const alignment = img.getAttribute('data-alignment') || 'center';
+                    
+                    let alignmentStyle = 'margin: 20px auto;';
+                    if (alignment === 'right') {
+                        alignmentStyle = 'margin: 20px 0 20px auto;';
+                    } else if (alignment === 'left') {
+                        alignmentStyle = 'margin: 20px auto 20px 0;';
+                    }
+                    
+                    imgElement.style.cssText = `
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                        ${alignmentStyle}
+                        border-radius: 10px;
+                        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                        transform: ${img.style.transform};
+                        transform-origin: center;
+                    `;
+                    itemDiv.appendChild(imgElement);
+                });
+
+                exportContent.appendChild(itemDiv);
+            });
+
+            document.body.appendChild(exportContent);
+            const canvas = await html2canvas(exportContent, { scale: quality / 72, useCORS: true, allowTaint: true });
+            document.body.removeChild(exportContent);
+
+            const imgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imgData;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
+
